@@ -6,13 +6,14 @@ function addscore()
 {
 	for i in `seq 1 8`
 	do
-		score[$i]=$((${score[${id[$i]}]}+8-${ans[$i]}))
+		score[${id[$i]}]=$((${score[${id[$i]}]}+8-${ans[$i]}))
 	done
+#	echo ${score[*]}
 }
 
 function waithost()
 {
-	#echo 'waithost'
+#	echo 'waithost'
 	for i in `seq 1 9`
 	do
 		#echo $i
@@ -23,13 +24,13 @@ function waithost()
 			ans[$(($i-1))]=${arr[1]};fi
 	done
 	hostnum=$(($hostnum+1))
-	#echo 'ans' ${ans[*]}
+#	echo 'ans' ${ans[*]}
 	addscore
 }
 #call host===============================================================
 function callhost()
 {
-		#echo 'call host function' ${player[*]}
+#		echo 'call host function' ${player[*]}
 		curhost=$(($curhost+1))
 		#curhost=1
 		if [ $hostnum -eq 0 ]
@@ -51,14 +52,13 @@ function callhost()
 max=$2
 function player_gen()
 {
-	#echo $1
+#	echo $1
 	if [ $1 -eq $(($2+1)) ]
-	then #echo 'call host function'
-		#echo ${player[*]}
+	then 
+#		echo 'call host function';echo ${player[*]}
 		callhost
 	elif [ $1 -gt 1 ]&&[ ${player[$(($1-1))]} -eq $max ];then return;
 	else
-	#j=$1
 		start=1
 		if [ $1 -ne 1 ]; then start=`expr ${player[$(($1-1))]} + 1`;fi
 		#for j in `seq $start 1 $max`
@@ -100,9 +100,7 @@ while [ $i -le $1 ]
 do
 	#echo $i
 	key[$i]=$(($RANDOM+$RANDOM))
-	#./host $i ${key[$i]} 0 3<>`echo 'fifo_'$i'.tmp'`& # > fifo_0.tmp &
-	#echo 'exec '$fd'<>`echo fifo_'$i'.tmp`"' # > fifo_0.tmp &
-	eval "exec $fd<>`echo 'fifo_'$i'.tmp'`" # > fifo_0.tmp &
+	eval "exec $fd<>`echo 'fifo_'$i'.tmp'`"
 	fd=$(($fd+1))
 	./host $i ${key[$i]} 0 &
 	hostnum=$(($hostnum+1))
@@ -110,11 +108,11 @@ do
 done
 #end run host=========================
 #end run $2 host=========================================================
-#echo 'player_gen'
+#echo 'hostnum' $hostnum
 player_gen 1 8 #generate player and start the auctions
 
 #wait
-if [ $hostnum -ne $1 ]; then waithost; fi
+while [ $hostnum -ne $1 ]; do waithost; done
 #echo ${score[*]}
 for i in `seq 1 $2`
 do
