@@ -25,6 +25,12 @@ function waithost()
 	done
 	hostnum=$(($hostnum+1))
 #	echo 'ans' ${ans[*]}
+#	cnt=1
+#	for i in `seq 1 $2`
+#	do
+#		if [ $i -eq ${id[$cnt]} ];then echo ${ans[$cnt]} '\c'; cnt=$(($cnt+1));
+#		else echo '0 \c'; fi
+#	done
 	addscore
 }
 #call host===============================================================

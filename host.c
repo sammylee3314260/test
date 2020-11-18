@@ -13,22 +13,23 @@ int cmppr(const void *a,const void *b){
 	const BID *A=(const BID*)a;
 	const BID *B=(const BID*)b;
 	return -1*((A->price)-(B->price));}
-void merge(FILE *pfi[],int depth){
-	BID input[2][10][8]={};
-	for(int i=0;i<2;i++){
-		for(int j=0;j<10;j++){
-			for(int k=0;k<(1<<(2-depth));k++){
-				fscanf(pfi[i],"%d%d",&input[i][j][k].player_id,&input[i][j][k].price);
-			}	
-		}
-	}
+void merge(FILE *pfi[],int depth,int *id){
+	//fprintf(stderr,"merge %d\n",depth);
+	BID input[2][10]={};
+	for(int i=0;i<2;i++)
+		for(int j=0;j<10;j++)
+			fscanf(pfi[i],"%d%d",&input[i][j].player_id,&input[i][j].price);
 	if(depth==0){
+		/*for(int j=0;j<10;j++){
+			for(int i=0;i<2;i++)
+				fprintf(stderr,"%d %d ",input[i][j].player_id,input[i][j].price);
+			fprintf(stderr,"\n");}*/
 		BID pl[8]={};//price->times of win
-		for(int k=0;k<8;k++){pl[k].player_id=input[k/4][0][k%4].player_id;}
+		for(int i=0;i<8;i++){pl[i].player_id=id[i];}
 		for(int j=0;j<10;j++){
-			int i=(input[1][j][0].price>input[0][j][0].price);
+			int i=(input[1][j].price>input[0][j].price);
 			for(int k=0;k<8;k++){
-				if(pl[k].player_id==input[i][j][0].player_id){pl[k].price++;break;}
+				if(pl[k].player_id==input[i][j].player_id){pl[k].price++;break;}
 			}
 		}
 		qsort(pl,8,sizeof(BID),cmppr);
@@ -50,15 +51,18 @@ void merge(FILE *pfi[],int depth){
 	}
 	else{
 		for(int j=0;j<10;j++){
-			int cur1=0,cur2=0;
+			int isbigger=(input[1][j].price>input[0][j].price);
+			printf("%d %d\n",input[isbigger][j].player_id,input[isbigger][j].price);
+			//fprintf(stderr,"%d %d\n",input[isbigger][j].player_id,input[isbigger][j].price);
+			/*int cur1=0,cur2=0;
 			while(cur1<(1<<(2-depth))||cur2<(1<<(2-depth))){
 				if(cur1>=(1<<(2-depth))){
 					printf("%d %d ",input[1][j][cur2].player_id,input[1][j][cur2].price);cur2++;}
 				else if(cur2>=(1<<(2-depth))||input[0][j][cur1].price>=input[1][j][cur2].price){
 					printf("%d %d ",input[0][j][cur1].player_id,input[0][j][cur1].price);cur1++;}
 				else{printf("%d %d ",input[1][j][cur2].player_id,input[1][j][cur2].price);cur2++;}
-			}
-		printf("\n");
+			}*/
+		//printf("\n");
 		}
 	}
 	fflush(stdout);
@@ -71,7 +75,7 @@ int main(int argc, char **argv,char **envp){
 	if(depth>2||depth<0){fprintf(stderr,"Error depth\n");exit(1);}
 	else if(depth==2){//leaf
 		while(1){
-			//puts("leaf host");
+			//fprintf(stderr,"leaf host\n");
 			int pid=0,player_id[2]={},isfinish=1;
 			for(int i=0;i<(1<<(3-depth));i++){scanf("%d",&player_id[i]);isfinish&=(player_id[i]==-1);}
 			if(isfinish)return 0;
@@ -85,10 +89,11 @@ int main(int argc, char **argv,char **envp){
 				}
 				else{/*father*/close(fd[1]);pfi[i]=fdopen(fd[0],"r");/*input pipe fd*/wait(NULL);}
 			}
-			merge(pfi,depth);
+			merge(pfi,depth,NULL);
 		}
 	}
 	else if(depth==1){
+		//fprintf(stderr,"depth=%d\n",depth);
 		int player_id[4]={};
 		FILE *out[2]={NULL,NULL};
 		for(int i=0;i<2;i++){
@@ -110,17 +115,15 @@ int main(int argc, char **argv,char **envp){
 			int isfinish=1;
 			for(int i=0;i<(1<<(3-depth));i++){fscanf(stdin,"%d",&player_id[i]);isfinish&=(player_id[i]==-1);}
 			for(int i=0;i<2;i++){fprintf(out[i],"%d %d\n",player_id[i*2+0],player_id[i*2+1]);fflush(out[i]);}
-			if(isfinish){for(int i=0;i<2;i++)wait(NULL);return 0;}else merge(pfi,depth);
+			if(isfinish){for(int i=0;i<2;i++)wait(NULL);return 0;}else merge(pfi,depth,NULL);
 		}
 	}
 	else{//depth==0
 		//Usage:./host [host_id] [key] [depth]
-		int stdoutfd=8;dup2(STDOUT_FILENO,stdoutfd);
 		int player_id[8]={};
 		FILE *out[2]={NULL,NULL};
 		dup2(3+host_id,STDIN_FILENO);close(3+host_id);
 		int fd=open("fifo_0.tmp",O_WRONLY);dup2(fd,STDOUT_FILENO);close(fd);
-		//printf("$$$$\n");
 		for(int i=0;i<2;i++){//fork 2 hosts
 			int PID=0,fd[2][2]={};
 			pipe(fd[0]);pipe(fd[1]);
@@ -140,9 +143,9 @@ int main(int argc, char **argv,char **envp){
 			}
 		}
 		while(1){
-			printf("%s\n",argv[2]);
 			int isfinish=1;
 			for(int i=0;i<(1<<(3-depth));i++){fscanf(stdin,"%d",&player_id[i]);isfinish&=(player_id[i]==-1);}
+			if(!isfinish)printf("%s\n",argv[2]);
 			//fprintf(stderr,"input\n");
 			for(int i=0;i<(1<<(3-depth));i++){
 				if(i==((1<<(3-depth))-1)&&player_id[i]==0){fprintf(stderr,"%d Input Error\n",depth);return 0;}
@@ -153,13 +156,7 @@ int main(int argc, char **argv,char **envp){
 				fprintf(out[i],"\n");fflush(out[i]);
 			}
 			if(isfinish){for(int i=0;i<2;i++)wait(NULL);return 0;}
-			else{
-				//int selffd[2];pipe(selffd);
-				//dup2(selffd[1],STDOUT_FILENO);
-				merge(pfi,depth);
-				//dup2(STDOUT_FILENO,stdoutfd);
-				//FILE *selffi=fdopen(selffd[0],"r");
-			}
+			else{merge(pfi,depth,player_id);}
 		}
 	}
 	return 0;
