@@ -32,7 +32,17 @@ void merge(FILE *pfi[],int depth,int *id){
 				if(pl[k].player_id==input[i][j].player_id){pl[k].price++;break;}
 			}
 		}
-		qsort(pl,8,sizeof(BID),cmppr);
+		int times[15]={},max=-1,cnt=0;
+		for(int i=0;i<8;i++){
+			times[pl[i].price]++;
+			if(max < pl[i].price) max=pl[i].price;
+		}
+		for(int i=max;i>=0;i--){
+			int temp=cnt+1;
+			cnt+=times[i];
+			times[i]=temp;
+		}
+		/*qsort(pl,8,sizeof(BID),cmppr);
 		int cur=0,cnt=0;
 		for(int i=0;i<8;i++){
 			cnt++;
@@ -45,9 +55,9 @@ void merge(FILE *pfi[],int depth,int *id){
 				else{pl[i].price=pl[i-1].price;}
 			}
 		}
-		qsort(pl,8,sizeof(BID),cmpid);
+		qsort(pl,8,sizeof(BID),cmpid);*/
 		for(int i=0;i<8;i++)
-			printf("%d %d\n",pl[i].player_id,pl[i].price);
+			printf("%d %d\n",pl[i].player_id,times[pl[i].price]);
 	}
 	else{
 		for(int j=0;j<10;j++){
@@ -147,11 +157,10 @@ int main(int argc, char **argv,char **envp){
 			for(int i=0;i<(1<<(3-depth));i++){fscanf(stdin,"%d",&player_id[i]);isfinish&=(player_id[i]==-1);}
 			if(!isfinish)printf("%s\n",argv[2]);
 			//fprintf(stderr,"input\n");
-			for(int i=0;i<(1<<(3-depth));i++){
-				if(i==((1<<(3-depth))-1)&&player_id[i]==0){fprintf(stderr,"%d Input Error\n",depth);return 0;}
-				else if(player_id[i]!=0)break;}
+			for(int i=0;i<(1<<(3-depth));i++)
+				if(player_id[i]==0){fprintf(stderr,"%d Input Error\n",depth);return 0;}
 			for(int i=0;i<2;i++){
-				//for(int j=0;j<(1<<(2-depth));j++)fprintf(stderr,"w%d ",player_id[j+4*i]);fprintf(stderr,"\n");
+				//for(int j=0;j<(1<<(2-depth));j++)fprintf(stderr,"%d ",player_id[j+4*i]);fprintf(stderr,"\n");
 				for(int j=0;j<(1<<(2-depth));j++)fprintf(out[i],"%d ",player_id[j+4*i]);
 				fprintf(out[i],"\n");fflush(out[i]);
 			}

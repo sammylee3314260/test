@@ -43,11 +43,7 @@ function callhost()
 			then 
 				waithost
 				for i in `seq 1 $1`
-				do 
-					#if [ -eq $tmpkey ]; then curhost=$i; break; fi
-					#echo [ ${key[$i]} -eq $tmpkey ]
-					if [ ${key[$i]} -eq $tmpkey ]; then curhost=$i; break; fi
-				done
+				do if [ ${key[$i]} -eq $tmpkey ]; then curhost=$i; break; fi;done
 		fi
 		echo ${player[*]} > `echo 'fifo_'$curhost'.tmp'`
 		#echo 'hello'
