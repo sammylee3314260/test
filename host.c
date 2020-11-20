@@ -126,11 +126,11 @@ int main(int argc, char **argv,char **envp){
 			int isfinish=1;
 			for(int i=0;i<(1<<(3-depth));i++){fscanf(stdin,"%d",&player_id[i]);isfinish&=(player_id[i]==-1);}
 			if(!isfinish)printf("%s\n",argv[2]);
-//fputs("input ",stderr);for(int j=0;j<8;j++)fprintf(stderr,"%d ",player_id[j]);fputs("\n",stderr);fflush(stderr);
+//fputs("input ",stderr);for(int j=0;j<8;j++)fprintf(stderr,"%d%c",player_id[j]," \n"[j==7]);fflush(stderr);
 			for(int i=0;i<(1<<(3-depth));i++)
 				if(player_id[i]==0){fprintf(stderr,"%d Input Error\n",depth);exit(1);}
 			for(int i=0;i<2;i++){
-				//fputs("to pipe ",stderr);for(int j=0;j<(1<<(2-depth));j++)fprintf(stderr,"%d ",player_id[j+4*i]);fprintf(stderr,"\n");
+//fputs("to pipe ",stderr);for(int j=0;j<(1<<(2-depth));j++)fprintf(stderr,"%d%c",player_id[j+4*i]," \n"[j==4]);
 				for(int j=0;j<(1<<(2-depth));j++)fprintf(out[i],"%d ",player_id[j+4*i]);
 				fprintf(out[i],"\n");fflush(out[i]);fsync(fileno(out[i]));
 			}

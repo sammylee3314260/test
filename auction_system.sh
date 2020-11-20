@@ -2,6 +2,7 @@
 hostnum=0
 key[8]=0
 curhost=0
+isoverhostnum=1
 function addscore()
 {
 	for i in `seq 1 8`
@@ -13,7 +14,7 @@ function addscore()
 
 function waithost()
 {
-#	echo 'waithost'
+	echo -e 'waithost \c'
 	for i in `seq 1 9`
 	do
 		#echo $i
@@ -39,12 +40,16 @@ function callhost()
 #		echo 'call host function' ${player[*]}
 		curhost=$(($curhost+1))
 		#curhost=1
-		if [ $hostnum -eq 0 ]
+		echo -e 'hostnum='$hostnum' \c'
+		if [ $hostnum -eq 0 ]|| [ $isoverhostnum -eq 0 ]
 			then 
+				isoverhostnum=0
 				waithost
 				for i in `seq 1 $1`
-				do if [ ${key[$i]} -eq $tmpkey ]; then curhost=$i; break; fi;done
+				do if [ ${key[$i]} -eq $tmpkey ]
+					then curhost=$i; break; fi;done
 		fi
+		echo 'curhost='$curhost 'hostnum='$hostnum
 		echo ${player[*]} > `echo 'fifo_'$curhost'.tmp'`
 		#echo 'hello'
 		hostnum=$(($hostnum-1))
@@ -78,6 +83,13 @@ function player_gen()
 if [ $# -lt 2 ]
 	then echo 'usage: sh auction_system.sh [n_host] [n_player]'; exit;
 fi
+check=0 
+if [ $1 -gt 10 ] || [ $1 -lt 0 ]
+then echo 'n_host = '$1 ' error:0<=n_host<=10'; check=1
+elif [ $2 -gt 12 ] || [ $2 -lt 0 ]
+then echo 'n_player = '$2 ' error:0<=n_player<=12';check=1
+fi
+if [ $check -eq 1 ];then exit; fi
 #initialise score======
 for i in `seq 1 $2`
 do
@@ -101,7 +113,7 @@ i=1
 while [ $i -le $1 ]
 do
 	#echo $i
-	key[$i]=$(($RANDOM+$RANDOM))
+	key[$i]=$RANDOM
 	eval "exec $fd<>`echo 'fifo_'$i'.tmp'`"
 	fd=$(($fd+1))
 	./host $i ${key[$i]} 0 &
