@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 int main(int argc, char **argv){
 	if(argv<=0){fprintf(stderr,"No parameter\n");return -1;}
@@ -11,5 +12,6 @@ int main(int argc, char **argv){
 	for(int i=0;i<10;i++){
 		printf("%d %d\n",player_id ,bid_list[player_id+i-1]*100);
 	}
+	fflush(stdout);fsync(fileno(stdout));
 	return 0;
 }

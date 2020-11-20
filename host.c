@@ -41,7 +41,7 @@ void merge(FILE *pfi[],int depth,int *id){
 			printf("%d %d\n",input[isbigger][j].player_id,input[isbigger][j].price);
 		}
 	}
-	fflush(stdout);
+	fflush(stdout);fsync(fileno(stdout));
 	return;
 }
 int main(int argc, char **argv,char **envp){
@@ -93,7 +93,8 @@ int main(int argc, char **argv,char **envp){
 			int isfinish=1;
 			for(int i=0;i<(1<<(3-depth));i++){fscanf(stdin,"%d",&player_id[i]);isfinish&=(player_id[i]==-1);}
 			//if(isfinish){fputs("finish 2\n",stderr);fflush(stderr);}
-			for(int i=0;i<2;i++){fprintf(out[i],"%d %d\n",player_id[i*2+0],player_id[i*2+1]);fflush(out[i]);}
+			for(int i=0;i<2;i++){fprintf(out[i],"%d %d\n",player_id[i*2+0],player_id[i*2+1]);
+					fflush(out[i]);fsync(fileno(out[i]));}
 			if(isfinish){for(int i=0;i<2;i++)wait(NULL);exit(0);}else merge(pfi,depth,NULL);
 		}
 	}
@@ -131,7 +132,7 @@ int main(int argc, char **argv,char **envp){
 			for(int i=0;i<2;i++){
 				//fputs("to pipe ",stderr);for(int j=0;j<(1<<(2-depth));j++)fprintf(stderr,"%d ",player_id[j+4*i]);fprintf(stderr,"\n");
 				for(int j=0;j<(1<<(2-depth));j++)fprintf(out[i],"%d ",player_id[j+4*i]);
-				fprintf(out[i],"\n");fflush(out[i]);
+				fprintf(out[i],"\n");fflush(out[i]);fsync(fileno(out[i]));
 			}
 			if(isfinish){for(int i=0;i<2;i++)wait(NULL);exit(0);}
 			else{merge(pfi,depth,player_id);}
