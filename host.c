@@ -60,7 +60,7 @@ int main(int argc, char **argv,char **envp){
 			}
 			for(int i=0;i<2;i++){
 				int fd[2];pipe(fd);//ch -> fa
-				if((pid=fork())<0){fprintf(stderr,"%d Fork error",depth);exit(1);}
+				if((pid=fork())<0){fprintf(stderr,"%d Fork error",depth);exit(1);fputs("isexit",stderr);}
 				else if(pid==0){//children
 					close(fd[0]);dup2(fd[1],STDOUT_FILENO);close(fd[1]);
 					char idstr[16]="\0";snprintf(idstr,sizeof(idstr),"%d",player_id[i]);
@@ -102,7 +102,9 @@ int main(int argc, char **argv,char **envp){
 		//Usage:./host [host_id] [key] [depth]
 		int player_id[8]={};
 		FILE *out[2]={NULL,NULL};
-		dup2(3+host_id,STDIN_FILENO);close(3+host_id);
+		//dup2(3+host_id,STDIN_FILENO);close(3+host_id);
+		char fname[512]="\0";snprintf(fname,sizeof(fname),"fifo_%d.tmp",host_id);
+		int fd=open(fname,O_RDONLY);dup2(fd,STDIN_FILENO);close(fd);
 		int fd=open("fifo_0.tmp",O_WRONLY);dup2(fd,STDOUT_FILENO);close(fd);
 		for(int i=0;i<2;i++){//fork 2 hosts
 			int PID=0,fd[2][2]={};
