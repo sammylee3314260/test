@@ -84,11 +84,11 @@ if [ $# -lt 2 ]
 	then echo 'usage: sh auction_system.sh [n_host] [n_player]'; exit;
 fi
 check=0 
-#if [ $1 -gt 10 ] || [ $1 -lt 0 ]
-#then echo 'n_host = '$1 ' error:0<=n_host<=10'; check=1
-#elif [ $2 -gt 12 ] || [ $2 -lt 0 ]
-#then echo 'n_player = '$2 ' error:0<=n_player<=12';check=1
-#fi
+if [ $1 -gt 10 ] || [ $1 -lt 0 ]
+then echo 'n_host = '$1 ' error:0<=n_host<=10'; check=1
+elif [ $2 -gt 12 ] || [ $2 -lt 0 ]
+then echo 'n_player = '$2 ' error:0<=n_player<=12';check=1
+fi
 if [ $check -eq 1 ];then exit; fi
 #initialise score======
 for i in `seq 1 $2`
