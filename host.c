@@ -78,7 +78,7 @@ int main(int argc, char **argv,char **envp){
 		FILE *out[2]={NULL,NULL};
 		for(int i=0;i<2;i++){
 			int fd[2][2];pipe(fd[0]);/*ch->fa*/pipe(fd[1]);/*fa->ch*/
-			if((PID[i]=fork())<0){fprintf(stderr,"%d Fork error\n",depth);exit(1);}
+			if((PID[i]=fork())<0){fprintf(stderr,"%d Fork error\n",depth);exit(1);fputs("isexit",stderr);}
 			if(PID[i]==0){
 				close(fd[0][0]);dup2(fd[0][1],STDOUT_FILENO);close(fd[0][1]);
 				close(fd[1][1]);dup2(fd[1][0],STDIN_FILENO);close(fd[1][0]);
