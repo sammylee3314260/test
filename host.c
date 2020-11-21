@@ -48,11 +48,12 @@ int main(int argc, char **argv,char **envp){
 	if(argc!=4){printf("Usage:./host [host_id] [key] [depth]\n");exit(1);}
 	int host_id=atoi(argv[1]),depth=atoi(argv[3]);
 	FILE *pfi[2]={};
+	int PID[2]={};
 	if(depth>2||depth<0){fprintf(stderr,"Error depth\n");exit(1);}
 	else if(depth==2){//leaf
 		while(1){
 			//fprintf(stderr,"leaf host\n");
-			int pid=0,player_id[2]={},isfinish=1;
+			int player_id[2]={},isfinish=1;
 			for(int i=0;i<(1<<(3-depth));i++){scanf("%d",&player_id[i]);isfinish&=(player_id[i]==-1);}
 			if(isfinish){
 				//fputs("finish 3\n",stderr);fflush(stderr);
@@ -60,8 +61,8 @@ int main(int argc, char **argv,char **envp){
 			}
 			for(int i=0;i<2;i++){
 				int fd[2];pipe(fd);//ch -> fa
-				if((pid=fork())<0){fprintf(stderr,"%d Fork error",depth);exit(1);}
-				else if(pid==0){//children
+				if((PID[i]=fork())<0){fprintf(stderr,"%d Fork error",depth);exit(1);}
+				else if(PID[i]==0){//children
 					close(fd[0]);dup2(fd[1],STDOUT_FILENO);close(fd[1]);
 					char idstr[16]="\0";snprintf(idstr,sizeof(idstr),"%d",player_id[i]);
 					char *arg[]={"./player",idstr,(char*)0};execve("./player",arg,envp);
@@ -76,9 +77,9 @@ int main(int argc, char **argv,char **envp){
 		int player_id[4]={};
 		FILE *out[2]={NULL,NULL};
 		for(int i=0;i<2;i++){
-			int PID=0, fd[2][2];pipe(fd[0]);/*ch->fa*/pipe(fd[1]);/*fa->ch*/
-			if((PID=fork())<0){fprintf(stderr,"%d Fork error\n",depth);exit(1);}
-			if(PID==0){
+			int fd[2][2];pipe(fd[0]);/*ch->fa*/pipe(fd[1]);/*fa->ch*/
+			if((PID[i]=fork())<0){fprintf(stderr,"%d Fork error\n",depth);exit(1);}
+			if(PID[i]==0){
 				close(fd[0][0]);dup2(fd[0][1],STDOUT_FILENO);close(fd[0][1]);
 				close(fd[1][1]);dup2(fd[1][0],STDIN_FILENO);close(fd[1][0]);
 				char *arg[]={"./host",argv[1],argv[2],"2",(char*)0};execve("./host",arg,envp);
@@ -107,10 +108,10 @@ int main(int argc, char **argv,char **envp){
 		int fd=open(fname,O_RDONLY);dup2(fd,STDIN_FILENO);close(fd);
 		fd=open("fifo_0.tmp",O_WRONLY);dup2(fd,STDOUT_FILENO);close(fd);
 		for(int i=0;i<2;i++){//fork 2 hosts
-			int PID=0,fd[2][2]={};
+			int fd[2][2]={};
 			pipe(fd[0]);pipe(fd[1]);
-			if((PID=fork())<0){fprintf(stderr,"%d:Fork error\n",depth);exit(1);}
-			if(PID==0){//child
+			if((PID[i]=fork())<0){fprintf(stderr,"%d:Fork error\n",depth);exit(1);}
+			if(PID[i]==0){//child
 				close(fd[0][0]);dup2(fd[0][1],STDOUT_FILENO);close(fd[0][1]);
 				close(fd[1][1]);dup2(fd[1][0],STDIN_FILENO);close(fd[1][0]);
 				char idstr[16]="\0";
