@@ -41,19 +41,18 @@ void merge(FILE *pfi[],int depth,int *id){
 			printf("%d %d\n",input[isbigger][j].player_id,input[isbigger][j].price);
 		}
 	}
-	fflush(stdout);//fsync(fileno(stdout));
+	fflush(stdout);fsync(fileno(stdout));
 	return;
 }
 int main(int argc, char **argv,char **envp){
 	if(argc!=4){printf("Usage:./host [host_id] [key] [depth]\n");exit(1);}
 	int host_id=atoi(argv[1]),depth=atoi(argv[3]);
 	FILE *pfi[2]={};
-	int PID[2]={};
 	if(depth>2||depth<0){fprintf(stderr,"Error depth\n");exit(1);}
 	else if(depth==2){//leaf
 		while(1){
 			//fprintf(stderr,"leaf host\n");
-			int player_id[2]={},isfinish=1;
+			int pid=0,player_id[2]={},isfinish=1;
 			for(int i=0;i<(1<<(3-depth));i++){scanf("%d",&player_id[i]);isfinish&=(player_id[i]==-1);}
 			if(isfinish){
 				//fputs("finish 3\n",stderr);fflush(stderr);
@@ -61,8 +60,8 @@ int main(int argc, char **argv,char **envp){
 			}
 			for(int i=0;i<2;i++){
 				int fd[2];pipe(fd);//ch -> fa
-				if((PID[i]=fork())<0){fprintf(stderr,"%d Fork error",depth);exit(1);}
-				else if(PID[i]==0){//children
+				if((pid=fork())<0){fprintf(stderr,"%d Fork error",depth);exit(1);}
+				else if(pid==0){//children
 					close(fd[0]);dup2(fd[1],STDOUT_FILENO);close(fd[1]);
 					char idstr[16]="\0";snprintf(idstr,sizeof(idstr),"%d",player_id[i]);
 					char *arg[]={"./player",idstr,(char*)0};execve("./player",arg,envp);
@@ -77,9 +76,9 @@ int main(int argc, char **argv,char **envp){
 		int player_id[4]={};
 		FILE *out[2]={NULL,NULL};
 		for(int i=0;i<2;i++){
-			int fd[2][2];pipe(fd[0]);/*ch->fa*/pipe(fd[1]);/*fa->ch*/
-			if((PID[i]=fork())<0){fprintf(stderr,"%d Fork error\n",depth);exit(1);fputs("isexit",stderr);}
-			if(PID[i]==0){
+			int PID=0, fd[2][2];pipe(fd[0]);/*ch->fa*/pipe(fd[1]);/*fa->ch*/
+			if((PID=fork())<0){fprintf(stderr,"%d Fork error\n",depth);exit(1);}
+			if(PID==0){
 				close(fd[0][0]);dup2(fd[0][1],STDOUT_FILENO);close(fd[0][1]);
 				close(fd[1][1]);dup2(fd[1][0],STDIN_FILENO);close(fd[1][0]);
 				char *arg[]={"./host",argv[1],argv[2],"2",(char*)0};execve("./host",arg,envp);
@@ -95,8 +94,7 @@ int main(int argc, char **argv,char **envp){
 			for(int i=0;i<(1<<(3-depth));i++){fscanf(stdin,"%d",&player_id[i]);isfinish&=(player_id[i]==-1);}
 			//if(isfinish){fputs("finish 2\n",stderr);fflush(stderr);}
 			for(int i=0;i<2;i++){fprintf(out[i],"%d %d\n",player_id[i*2+0],player_id[i*2+1]);
-					fflush(out[i]);//fsync(fileno(out[i]));
-			}
+					fflush(out[i]);fsync(fileno(out[i]));}
 			if(isfinish){for(int i=0;i<2;i++)wait(NULL);exit(0);}else merge(pfi,depth,NULL);
 		}
 	}
@@ -109,10 +107,10 @@ int main(int argc, char **argv,char **envp){
 		int fd=open(fname,O_RDONLY);dup2(fd,STDIN_FILENO);close(fd);
 		fd=open("fifo_0.tmp",O_WRONLY);dup2(fd,STDOUT_FILENO);close(fd);
 		for(int i=0;i<2;i++){//fork 2 hosts
-			int fd[2][2]={};
+			int PID=0,fd[2][2]={};
 			pipe(fd[0]);pipe(fd[1]);
-			if((PID[i]=fork())<0){fprintf(stderr,"%d:Fork error\n",depth);exit(1);}
-			if(PID[i]==0){//child
+			if((PID=fork())<0){fprintf(stderr,"%d:Fork error\n",depth);exit(1);}
+			if(PID==0){//child
 				close(fd[0][0]);dup2(fd[0][1],STDOUT_FILENO);close(fd[0][1]);
 				close(fd[1][1]);dup2(fd[1][0],STDIN_FILENO);close(fd[1][0]);
 				char idstr[16]="\0";
@@ -136,7 +134,7 @@ int main(int argc, char **argv,char **envp){
 			for(int i=0;i<2;i++){
 //fputs("to pipe ",stderr);for(int j=0;j<(1<<(2-depth));j++)fprintf(stderr,"%d%c",player_id[j+4*i]," \n"[j==4]);
 				for(int j=0;j<(1<<(2-depth));j++)fprintf(out[i],"%d ",player_id[j+4*i]);
-				fprintf(out[i],"\n");fflush(out[i]);//fsync(fileno(out[i]));
+				fprintf(out[i],"\n");fflush(out[i]);fsync(fileno(out[i]));
 			}
 			if(isfinish){for(int i=0;i<2;i++)wait(NULL);exit(0);}
 			else{merge(pfi,depth,player_id);}
