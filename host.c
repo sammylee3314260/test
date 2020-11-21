@@ -105,7 +105,7 @@ int main(int argc, char **argv,char **envp){
 		//dup2(3+host_id,STDIN_FILENO);close(3+host_id);
 		char fname[512]="\0";snprintf(fname,sizeof(fname),"fifo_%d.tmp",host_id);
 		int fd=open(fname,O_RDONLY);dup2(fd,STDIN_FILENO);close(fd);
-		int fd=open("fifo_0.tmp",O_WRONLY);dup2(fd,STDOUT_FILENO);close(fd);
+		fd=open("fifo_0.tmp",O_WRONLY);dup2(fd,STDOUT_FILENO);close(fd);
 		for(int i=0;i<2;i++){//fork 2 hosts
 			int PID=0,fd[2][2]={};
 			pipe(fd[0]);pipe(fd[1]);
