@@ -97,7 +97,8 @@ int main(int argc, char **argv,char **envp){
 			for(int i=0;i<2;i++){fprintf(out[i],"%d %d\n",player_id[i*2+0],player_id[i*2+1]);
 					fflush(out[i]);//fsync(fileno(out[i]));
 			}
-			if(isfinish){for(int i=0;i<2;i++)wait(NULL);exit(0);}else merge(pfi,depth,NULL);
+			if(isfinish){for(int i=0;i<2;i++){wait(NULL);close(fileno(pfi[i]));close(fileno(out[i]));}exit(0);}
+			else merge(pfi,depth,NULL);
 		}
 	}
 	else{//depth==0
@@ -138,7 +139,7 @@ int main(int argc, char **argv,char **envp){
 				for(int j=0;j<(1<<(2-depth));j++)fprintf(out[i],"%d ",player_id[j+4*i]);
 				fprintf(out[i],"\n");fflush(out[i]);//fsync(fileno(out[i]));
 			}
-			if(isfinish){for(int i=0;i<2;i++)wait(NULL);exit(0);}
+			if(isfinish){for(int i=0;i<2;i++){wait(NULL);close(fileno(pfi[i]));close(fileno(out[i]));}exit(0);}
 			else{merge(pfi,depth,player_id);}
 		}
 	}
